@@ -3,7 +3,7 @@ const Sauce = require('../models/sauce');
 exports.createSauce = (req, res, next) => {
 const sauceObject = JSON.parse(req.body.sauce);
 delete sauceObject._id; 
-delete sauceObject._userId // il faut pas faire confiance aux utilisateurs ous le remplaçons en base de données par le _userId extrait du token par le middleware d’authentification.
+delete sauceObject._userId // il faut pas faire confiance aux utilisateurs nous le remplaçons en base de données par le _userId extrait du token par le middleware d’authentification.
 const sauce = new Sauce ({
     ...sauceObject,
     userId : req.auth.userId,

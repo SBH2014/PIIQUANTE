@@ -5,6 +5,7 @@ const MIME_TYPES= {
     'image/png' : 'png'
 }
 //créé un objet de config pour multer 
+// diskstorage  configure le chemin et le nom de fichier pour les fichiers entrants.
 const storage = multer.diskStorage({
     destination : (req , file , callback ) => {
         callback (null,'images')
