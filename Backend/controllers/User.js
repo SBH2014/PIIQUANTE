@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 // jsonwebtoken créé des token et les verifié 
 const jwt = require('jsonwebtoken');
-const user = require('../models/User');
+
 exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
@@ -13,11 +13,17 @@ exports.signup = (req, res, next) => {
                 email: req.body.email,
                 password: hash
             });
-            User.save()
+            newUser.save()
                 .then(() => res.status(201).json({ message: 'utilisateur crée ! ' }))
                 .catch(error => res.status(400).json({ error }));
         })
-        .catch(error => res.status(500).json({ error }));
+
+        .catch( function (error) {
+            console.log(error)
+            res.status(500).json({ error })
+
+    });
+     
 
 };
 // connecté des utilisateurs existans 

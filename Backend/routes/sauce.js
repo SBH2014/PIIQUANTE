@@ -5,6 +5,11 @@ const multer = require('../middleware/multer-config')
 const sauceCtrl = require('../controllers/sauce')
 const Sauce = require('../models/sauce')
 
-router.post('/', auth, multer , function(req,res){sauceCtrl.createThing} );
+router.get('/' ,auth, multer , sauceCtrl.getAllSauce);
+router.post('/', auth, multer , sauceCtrl.createSauce );
+router.get('/:id', sauceCtrl.getOneSauce);
+
+
+
 module.exports = router;
 
