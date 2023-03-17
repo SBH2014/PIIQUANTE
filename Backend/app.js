@@ -5,11 +5,6 @@ const app = express();
 const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauce')
 const userRoutes = require('./routes/User');
-
-
-
-
-
 mongoose.connect('mongodb+srv://sara:1234Sara@cluster0.l0w25cq.mongodb.net/?retryWrites=true&w=majority',
     {
         useNewUrlParser: true,
@@ -28,10 +23,10 @@ app.use((req, res, next) => {
 // accée au corps de la requette 
 app.use(express.json());
 
-
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/auth', userRoutes);
 app.use('/api/sauces', sauceRoutes);
-app.use('/images', express.static(path.join(__dirname, 'images')));
+
 
 
 module.exports = app; 
