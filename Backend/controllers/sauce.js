@@ -8,8 +8,6 @@ exports.getAllSauce = (req, res, next) => {
         .then(sauce => res.status(201).json(sauce))
         .catch(error => res.status(400).json({ error }))
 }
-
-
 exports.createSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
     delete sauceObject._id;
@@ -81,61 +79,70 @@ exports.likeDislikeSauce = (req, res, next) => {
     //chercher l'objet dans la base de donné 
     // utilisé includes  une methode de js
     //utilisation des operateur mongoDb ($inc $push $pull)
-    // 1 like =1
-    Sauce.findOne({ _id: req.params.id })
-        .then((sauce) => {
-            console.log('contenu resultat promesse', sauce)
+    let sauceId = req.params.id;
+    let userId = req.body.userId;
+    let like = req.body.like;
+        Sauce.findOne({ _id: sauceId })
+            .then((sauce) => {
+                console.log('contenu resultat promesse', sauce)
+                // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
+                switch (like) {
+                    case 1:
+                        // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
 
-            // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
-            if (!sauce.usersLiked.includes(req.body.userId) && req.body.likes == 1) {
-                console.log("resultat OK : userId n' est pas dans le tableau des usersLiked dans la base de données et resultat likes = 1")
-                //mise à jours base de données 
-                Sauce.updateOne({ _id: req.params.id }, { $inc: { likes: 1 }, $push: { usersLiked: req.body.userId } })
+                        if (!sauce.usersLiked.includes(userId) && like === 1) {
+                            console.log("resultat OK : userId n' est pas dans le tableau des usersLiked dans la base de données et resultat likes = 1")
+                            //mise à jours base de données 
+                            Sauce.updateOne({ _id: sauceId }, { $inc: { likes: 1 }, $push: { usersLiked: userId } })
 
-                    .then(() => res.status(200).json({ message: "j'aime +1" }))
-                    .catch((error) => { res.status(400).json({ error }) })
+                                .then(() => res.status(200).json({ message: "j'aime +1" }))
+                                .catch((error) => { res.status(400).json({ error }) })
+                        }
+                        break;
+                    case -1:
+
+                        // si likes = -1 dislikes= +1
+                        if (!sauce.usersDisliked.includes(userId) && like === -1) {
+                            console.log("resultat OK : userId  est  dans le tableau des usersLiked dans la base de données et resultat dislikes = 1")
+                            //mise à jours base de données 
+                            Sauce.updateOne({ _id: sauceId }, { $inc: { dislikes: 1 }, $push: { usersDisliked: userId } })
+
+                                .then(() => res.status(200).json({ message: "je n'aime pas " }))
+                                .catch((error) => { res.status(400).json({ error }) })
+                        }
+                        break;
+
+                    case 0:
+
+                        // 2 like = 0
+                        if (sauce.usersLiked.includes(userId)) {
+                            console.log("resultat OK : userId  est dans le tableau des usersLiked dans la base de données et resultat likes = 0")
+                            //mise à jours base de données 
+                            Sauce.updateOne({ _id: sauceId }, { $inc: { likes: -1 }, $pull: { usersLiked: userId } })
+
+                                .then(() => res.status(200).json({ message: "Neutre" }))
+                                .catch((error) => { res.status(400).json({ error }) })
+                        }
+                        // on enleve le dislikes 
+                        if (sauce.usersDisliked.includes(userId)) {
+                            console.log("resultat OK : userId est dans le tableau des usersdisliked dans la base de données et resultat likes = 0")
+                            //mise à jours base de données 
+                            Sauce.updateOne({ _id: sauceId }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: userId } })
+
+                                .then(() => res.status(200).json({ message: "dislikes :  Neutre" }))
+                                .catch((error) => { res.status(400).json({ error }) })
+                        }
+                        break;
+                }
             }
-            // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
-                // 2 like = 0
-            if (sauce.usersLiked.includes(req.body.userId) && req.body.likes == 0) {
-                console.log("resultat OK : userId n' est pas dans le tableau des usersLiked dans la base de données et resultat likes = 1")
-                //mise à jours base de données 
-                Sauce.updateOne({ _id: req.params.id }, { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } })
-
-                    .then(() => res.status(200).json({ message: "Neutre" }))
-                    .catch((error) => { res.status(400).json({ error }) })
-            }
-            // 3 like =-1
-            // si likes = -1 dislikes= +1
-            if (!sauce.usersDisliked.includes(req.body.userId) && req.body.likes == -1) {
-                console.log("resultat OK : userId n' est pas dans le tableau des usersLiked dans la base de données et resultat dislikes = 1")
-                //mise à jours base de données 
-                Sauce.updateOne({ _id: req.params.id }, { $inc: { dislikes: 1 }, $push: { usersDisliked: req.body.userId } })
-
-                    .then(() => res.status(200).json({ message: "je n'aime pas " }))
-                    .catch((error) => { res.status(400).json({ error }) })
-            }
-            if (sauce.usersDisliked.includes(req.body.userId) && req.body.likes == 0) {
-                console.log("resultat OK : userId n' est pas dans le tableau des usersdisliked dans la base de données et resultat likes = 0")
-                //mise à jours base de données 
-                Sauce.updateOne({ _id: req.params.id }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } })
-
-                    .then(() => res.status(200).json({ message: "dislikes :  Neutre" }))
-                    .catch((error) => { res.status(400).json({ error }) })
-            }
-            else {
-                console.log('false')
-            }
-
-        }
-        )
-        .catch((error) => {
-            res.status(404).json({ error })
-        });
+            )
+            .catch((error) => {
+                res.status(404).json({ error })
+            });
 
 
 
-   
+
 }
 
 

@@ -1,7 +1,8 @@
 //2 middleware un pour s'inscrir et un pour se connecter 
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
-
+const dotenv = require('dotenv')
+dotenv.config()
 // jsonwebtoken créé des token et les verifié 
 const jwt = require('jsonwebtoken');
 
@@ -39,11 +40,12 @@ exports.login = (req, res, next) => {
                 if (!valid) {
                     return res.status(401).json({ error: 'Mot de passe incorrect !' });
                 }
+       
                 res.status(200).json({
                     userId: user._id,
                     token: jwt.sign(
                         { userId: user._id },
-                        'RANDOM_TOKEN_SECRET', 
+                        process.env.TOKEN_SECRET, 
                         { expiresIn: '24h' }
                     )
                 });
