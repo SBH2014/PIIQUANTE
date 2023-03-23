@@ -12,12 +12,12 @@ module.exports = (req, res, next) => {
         };
 
         if(req.body.userId && req.body.userId !== userId){
-            throw new Error('unauthorized request')
+            return res.status(403).json({ error : 'unauthorized request'}); // todo should be 403
         }
         next();
 
     } catch (error) {
-        res.status(403).json({ error : error.message});
+        res.status(401).json({ error : error.message});
     }
 
 };

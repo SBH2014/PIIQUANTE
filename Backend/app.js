@@ -5,7 +5,8 @@ const app = express();
 const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauce')
 const userRoutes = require('./routes/User');
-mongoose.connect('mongodb+srv://sara:1234Sara@cluster0.l0w25cq.mongodb.net/?retryWrites=true&w=majority',
+require('dotenv').config()
+mongoose.connect(process.env.DATABASE_URL,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -20,7 +21,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// accée au corps de la requette 
+// accée au corps de la requette
 app.use(express.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
@@ -29,4 +30,4 @@ app.use('/api/sauces', sauceRoutes);
 
 
 
-module.exports = app; 
+module.exports = app;
