@@ -19,7 +19,7 @@ exports.createSauce = (req, res, next) => {
         ...sauceObject,
         userId: req.auth.userId,
         // pour récupérer le segment de base de l'URL de notre serveur
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`, // todo should be a method duplicate
+        imageUrl: getImageUrl(req), //
 
     });
 
@@ -84,83 +84,68 @@ exports.modifySauce = (req, res, next) => {
         });
 }
 
-exports.likeDislikeSauce = (req, res, next) => {
+exports.likeDislikeSauce = async (req, res, next) => {
     //chercher l'objet dans la base de donné
     // utilisé includes  une methode de js
     //utilisation des operateur mongoDb ($inc $push $pull)
     let sauceId = req.params.id;
     let userId = req.body.userId;
     let like = req.body.like;
-    Sauce.findOne({_id: sauceId})
-        .then((sauce) => {
-                console.log('contenu resultat promesse', sauce)
+
+    try {
+        const sauce = await Sauce.findOne({_id: sauceId});
+
+        if (!sauce) {
+            res.status(404).json({error: 'Not found'})
+        }
+
+        let update = {};
+        // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
+        switch (like) {
+            case 1:
                 // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
-                switch (like) {
-                    case 1:
-                        // si le userId n'existe pas dans le tableau [userliked] (false) et like===1
-
-                        if (!sauce.usersLiked.includes(userId) && like === 1) {
-                            console.log("resultat OK : userId n' est pas dans le tableau des usersLiked dans la base de données et resultat likes = 1")
-                            //mise à jours base de données
-                            Sauce.updateOne({_id: sauceId}, {$inc: {likes: 1}, $push: {usersLiked: userId}})
-
-                                .then(() => res.status(200).json({message: "j'aime +1"}))
-                                .catch((error) => {
-                                    res.status(400).json({error})
-                                })
-                        }
-                        break;
-                    case -1:
-
-                        // si likes = -1 dislikes= +1
-                        if (!sauce.usersDisliked.includes(userId) && like === -1) {
-                            console.log("resultat OK : userId  est  dans le tableau des usersLiked dans la base de données et resultat dislikes = 1")
-                            //mise à jours base de données
-                            Sauce.updateOne({_id: sauceId}, {$inc: {dislikes: 1}, $push: {usersDisliked: userId}})
-
-                                .then(() => res.status(200).json({message: "je n'aime pas "}))
-                                .catch((error) => {
-                                    res.status(400).json({error})
-                                })
-                        }
-                        break;
-
-                    case 0:
-
-                        // 2 like = 0
-                        if (sauce.usersLiked.includes(userId)) {
-                            console.log("resultat OK : userId  est dans le tableau des usersLiked dans la base de données et resultat likes = 0")
-                            //mise à jours base de données
-                            Sauce.updateOne({_id: sauceId}, {$inc: {likes: -1}, $pull: {usersLiked: userId}})
-
-                                .then(() => res.status(200).json({message: "Neutre"}))
-                                .catch((error) => {
-                                    res.status(400).json({error})
-                                })
-                        }
-                        // on enleve le dislikes
-                        if (sauce.usersDisliked.includes(userId)) {
-                            console.log("resultat OK : userId est dans le tableau des usersdisliked dans la base de données et resultat likes = 0")
-                            //mise à jours base de données
-                            Sauce.updateOne({_id: sauceId}, {$inc: {dislikes: -1}, $pull: {usersDisliked: userId}})
-
-                                .then(() => res.status(200).json({message: "dislikes :  Neutre"}))
-                                .catch((error) => {
-                                    res.status(400).json({error})
-                                })
-                        }
-                        break;
+                if (!sauce.usersLiked.includes(userId) && like === 1) {
+                    //mise à jours base de données
+                    update = {$inc: {likes: 1}, $push: {usersLiked: userId}}
                 }
-            }
-        )
-        .catch((error) => {
-            res.status(404).json({error})
-        });
+                break;
+            case -1:
+                // si likes = -1 dislikes= +1
+                if (!sauce.usersDisliked.includes(userId) && like === -1) {
+                    //mise à jours base de données
+                    update = {$inc: {dislikes: 1}, $push: {usersDisliked: userId}}
+                }
+                break;
 
+            case 0:
+                // 2 like = 0
+                if (sauce.usersLiked.includes(userId)) {
+                    //mise à jours base de données
+                    update = {$inc: {likes: -1}, $pull: {usersLiked: userId}}
+                }
+                // on enleve le dislikes
+                if (sauce.usersDisliked.includes(userId)) {
+                    //mise à jours base de données
+                    update = {$inc: {dislikes: -1}, $pull: {usersDisliked: userId}}
+                }
+                break;
+        }
 
+        if (update) {
+            await Sauce.updateOne({_id: sauceId}, update);
+            return res.status(200).json({message: 'ok'});
+        }
+
+        res.status(400).json({error: 'Bad request'})
+
+    } catch (error) {
+        res.status(500).json({error})
+    }
 }
 
-
+function getImageUrl(req) {
+    return `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+}
 
 
 
