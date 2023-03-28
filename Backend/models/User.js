@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+//s'enregistrer une fois avec une seule adresse mail 
 const uniqueValidator = require('mongoose-unique-validator')
 
 const userSchema = mongoose.Schema({
