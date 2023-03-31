@@ -24,7 +24,7 @@ exports.createSauce = async (req, res, next) => {
 
     });
     try {
-        const addNewSauce = await newSauce.save()
+        const sauce = await newSauce.save()
         return res.status(201).json({ message: 'Objet enregistré !' })
     }
     catch (error) {
@@ -36,7 +36,7 @@ exports.createSauce = async (req, res, next) => {
 exports.getOneSauce = async (req, res, next) => {
 
     try {
-        const oneSauce = await Sauce.findOne({ _id: req.params.id })
+        const oneSauce = await Sauce.findById(req.params.id )
         return res.status(200).json(oneSauce)
     }
     catch (error) {
@@ -46,7 +46,7 @@ exports.getOneSauce = async (req, res, next) => {
 }
 exports.deleteSauce = async (req, res, next) => {
     try {
-        const sauce = await Sauce.findOne({ _id: req.params.id })
+        const sauce = await Sauce.findById( req.params.id )
         if (sauce.userId != req.auth.userId) {
             return res.status(401).json({ message: 'Not authorized' })
         }
@@ -74,7 +74,7 @@ exports.modifySauce = async (req, res, next) => {
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         } : { ...req.body };
     try {
-        const sauce = await Sauce.findOne({ _id: req.params.id })
+        const sauce = await Sauce.findById(req.params.id )
         if (sauce.userId != req.auth.userId) {
             return res.status(401).json({ message: 'not authorized' })
         }
@@ -93,7 +93,6 @@ exports.modifySauce = async (req, res, next) => {
         res.status(400).json({ error })
     }
 }
-
 exports.likeDislikeSauce = async (req, res, next) => {
     //chercher l'objet dans la base de donné 
     // utilisé includes  une methode de js
@@ -102,7 +101,7 @@ exports.likeDislikeSauce = async (req, res, next) => {
     let userId = req.body.userId;
     let like = req.body.like;
     try {
-        const sauce = await Sauce.findOne({ _id: sauceId });
+        const sauce = await Sauce.findById( sauceId );
         if (!sauce) {
             res.status(404).json({ error: 'Not found' })
         }
