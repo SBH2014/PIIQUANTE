@@ -7,11 +7,12 @@ dotenv.config()
 const jwt = require('jsonwebtoken');
 
 exports.signup = (req, res, next) => {
-    bcrypt.hash(req.body.password, 10)
+    const {email , password} = req.body
+    bcrypt.hash(password, 10)
         .then(hash => {
             //crée un nouveau user avec le mdp crypté et l'adresse mail passé dans la requete 
             const newUser = new User({
-                email: req.body.email,
+                email: email,
                 password: hash
             });
             newUser.save()
@@ -30,12 +31,13 @@ exports.signup = (req, res, next) => {
 // connecté des utilisateurs existans 
 //La méthode compare de bcrypt compare un string avec un hash , par exemple, vérifier si un mot de passe entré par l'utilisateur correspond à un hash sécurisé enregistré en base de données
 exports.login = (req, res, next) => {
-    User.findOne({ email: req.body.email })
+    const {email , password} = req.body
+    User.findOne({ email})
     .then(user => {
         if (!user) {
             return res.status(401).json({ error: 'Utilisateur non trouvé !' });
         }
-        bcrypt.compare(req.body.password, user.password)
+        bcrypt.compare(password, user.password)
             .then(valid => {
                 if (!valid) {
                     return res.status(401).json({ error: 'Mot de passe incorrect !' });

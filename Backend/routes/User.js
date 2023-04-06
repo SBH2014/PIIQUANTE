@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router()
-const userCtrl = require('../controllers/User')
+const {signup,login} = require('../controllers/User')
 const checkPassword = require('../middleware/check_password')
+const checkEmail = require('../middleware/check_email')
 
-router.post('/signup', checkPassword , userCtrl.signup) ;
-router.post('/login', userCtrl.login) 
+router.post('/signup', checkEmail, checkPassword , signup) ;
+router.post('/login', login) 
 
 module.exports = router;

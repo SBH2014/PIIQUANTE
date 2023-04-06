@@ -1,9 +1,14 @@
+// pour créer le router nous avons besoin d'express 
 const express = require('express');
+// on créer un routeur avec la méthode Router() d'express
 const router = express.Router();
+// middleware d'authentification pour proteger les routes 
 const auth = require('../middleware/auth');
+// pour ajout d'image 
 const multer = require('../middleware/multer-config')
+//la logique des routes 
 const sauceCtrl = require('../controllers/sauce')
-const Sauce = require('../models/sauce')
+
 
 router.get('/' ,auth , sauceCtrl.getAllSauce);
 router.post('/', auth, multer , sauceCtrl.createSauce );
